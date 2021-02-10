@@ -8,10 +8,10 @@ import (
 	"os"
 	"sync"
 
-	"github.com/MOZGIII/external-dns-endpoint-server/edns"
-	"github.com/MOZGIII/external-dns-endpoint-server/httprun"
-	"github.com/MOZGIII/external-dns-endpoint-server/logic"
-	"github.com/MOZGIII/external-dns-endpoint-server/update"
+	"github.com/MOZGIII/external-dns-endpoint-server/internal/edns"
+	"github.com/MOZGIII/external-dns-endpoint-server/internal/httprun"
+	"github.com/MOZGIII/external-dns-endpoint-server/internal/logic"
+	"github.com/MOZGIII/external-dns-endpoint-server/internal/update"
 
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 	"sigs.k8s.io/external-dns/endpoint"
