@@ -6,8 +6,10 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"sync"
 
 	"github.com/MOZGIII/external-dns-endpoint-server/edns"
+	"github.com/MOZGIII/external-dns-endpoint-server/httprun"
 	"github.com/MOZGIII/external-dns-endpoint-server/logic"
 	"github.com/MOZGIII/external-dns-endpoint-server/update"
 
@@ -18,10 +20,11 @@ import (
 func Run() error {
 	ctx := signals.SetupSignalHandler()
 
-	addr := os.Getenv("ADDR")
+	httpAddr := readEnv("HTTP_ADDR")
+	ednsAddr := readEnv("EDNS_ADDR")
 
 	ednslc := net.ListenConfig{}
-	ednsListener, err := ednslc.Listen(ctx, "tcp", addr)
+	ednsListener, err := ednslc.Listen(ctx, "tcp", ednsAddr)
 	if err != nil {
 		return fmt.Errorf("unable to listen for connector: %v", err)
 	}
@@ -38,15 +41,29 @@ func Run() error {
 		IPChan:       ipChan,
 		EnpointsChan: endpointsChan,
 	}
-	go logic.Run(ctx)
 
-	handler := edns.Handler{
+	ednsHandler := edns.Handler{
 		ConnCh:  connCh,
 		StateCh: endpointsChan,
 	}
-	go handler.Run(ctx)
+	httpSrv := http.Server{
+		Addr:    httpAddr,
+		Handler: updateHandler,
+	}
 
-	return http.ListenAndServe(addr, updateHandler)
+	var wg sync.WaitGroup
+
+	go ednsHandler.Run(ctx, &wg)
+	wg.Add(1)
+
+	go logic.Run(ctx, &wg)
+	wg.Add(1)
+
+	go httprun.Run(ctx, &wg, &httpSrv)
+	wg.Add(1)
+
+	wg.Wait()
+	return nil
 }
 
 func acceptLoop(listener net.Listener) <-chan net.Conn {
@@ -62,4 +79,12 @@ func acceptLoop(listener net.Listener) <-chan net.Conn {
 		}
 	}()
 	return ch
+}
+
+func readEnv(key string) string {
+	val := os.Getenv(key)
+	if val == "" {
+		log.Fatalf("%s env var unset", key)
+	}
+	return val
 }

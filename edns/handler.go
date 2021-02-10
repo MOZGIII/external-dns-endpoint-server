@@ -5,6 +5,7 @@ import (
 	"encoding/gob"
 	"log"
 	"net"
+	"sync"
 
 	"sigs.k8s.io/external-dns/endpoint"
 )
@@ -14,7 +15,9 @@ type Handler struct {
 	StateCh <-chan []endpoint.Endpoint
 }
 
-func (h *Handler) Run(ctx context.Context) {
+func (h *Handler) Run(ctx context.Context, wg *sync.WaitGroup) {
+	defer wg.Done()
+
 	var state []endpoint.Endpoint
 
 	// Wait for the state to be initialized first.

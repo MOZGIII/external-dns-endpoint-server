@@ -14,6 +14,11 @@ type Handler struct {
 var _ http.Handler = (*Handler)(nil)
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 	data, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		log.Panicf("failed to read the IP from the incoming HTTP request: %v", err)
@@ -27,4 +32,5 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.IPChan <- ip
+	log.Printf("handled IP address update: %v", ip)
 }

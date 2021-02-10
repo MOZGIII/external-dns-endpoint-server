@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net"
+	"sync"
 
 	"sigs.k8s.io/external-dns/endpoint"
 )
@@ -20,7 +21,8 @@ type Logic struct {
 	EnpointsChan chan<- []endpoint.Endpoint
 }
 
-func (l *Logic) Run(ctx context.Context) {
+func (l *Logic) Run(ctx context.Context, wg *sync.WaitGroup) {
+	defer wg.Done()
 	for {
 		select {
 		case ip := <-l.IPChan:
