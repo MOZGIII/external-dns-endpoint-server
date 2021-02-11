@@ -36,7 +36,7 @@ func Run() error {
 		IPChan: ipChan,
 	}
 
-	endpointsChan := make(chan []endpoint.Endpoint, 32)
+	endpointsChan := make(chan []*endpoint.Endpoint, 32)
 	logic := logic.Logic{
 		IPChan:       ipChan,
 		EnpointsChan: endpointsChan,

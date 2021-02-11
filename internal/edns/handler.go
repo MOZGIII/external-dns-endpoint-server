@@ -12,13 +12,13 @@ import (
 
 type Handler struct {
 	ConnCh  <-chan net.Conn
-	StateCh <-chan []endpoint.Endpoint
+	StateCh <-chan []*endpoint.Endpoint
 }
 
 func (h *Handler) Run(ctx context.Context, wg *sync.WaitGroup) {
 	defer wg.Done()
 
-	var state []endpoint.Endpoint
+	var state []*endpoint.Endpoint
 
 	// Wait for the state to be initialized first.
 	select {
@@ -41,7 +41,7 @@ func (h *Handler) Run(ctx context.Context, wg *sync.WaitGroup) {
 	}
 }
 
-func serveTcp(ctx context.Context, conn net.Conn, state []endpoint.Endpoint) {
+func serveTcp(ctx context.Context, conn net.Conn, state []*endpoint.Endpoint) {
 	defer conn.Close()
 	enc := gob.NewEncoder(conn)
 	if err := enc.Encode(state); err != nil {
