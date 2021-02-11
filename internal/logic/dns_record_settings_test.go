@@ -1,6 +1,7 @@
 package logic_test
 
 import (
+	"errors"
 	"net"
 	"reflect"
 	"testing"
@@ -26,7 +27,7 @@ func TestMapIPToEndpoint(t *testing.T) {
 		settings logic.DNSRecordSettings
 		ip       net.IP
 		endpoint *endpoint.Endpoint
-		err      bool
+		err      error
 	}{
 		{
 			desc: "empty IP",
@@ -39,7 +40,7 @@ func TestMapIPToEndpoint(t *testing.T) {
 			},
 			ip:       []byte{},
 			endpoint: nil,
-			err:      true,
+			err:      logic.ErrInvalidIP,
 		},
 		{
 			desc: "IPv4",
@@ -61,7 +62,7 @@ func TestMapIPToEndpoint(t *testing.T) {
 				Labels:           testLabels.DeepCopy(),
 				ProviderSpecific: nil,
 			},
-			err: false,
+			err: nil,
 		},
 		{
 			desc: "IPv6",
@@ -83,7 +84,7 @@ func TestMapIPToEndpoint(t *testing.T) {
 				Labels:           testLabels.DeepCopy(),
 				ProviderSpecific: nil,
 			},
-			err: false,
+			err: nil,
 		},
 	}
 
@@ -91,9 +92,9 @@ func TestMapIPToEndpoint(t *testing.T) {
 		tC := tC
 		t.Run(tC.desc, func(t *testing.T) {
 			ep, err := tC.settings.MapIPToEndpoint(tC.ip)
-			if tC.err {
-				if err == nil {
-					t.Error("expected an error but didn't get one")
+			if tC.err != nil {
+				if !errors.Is(err, tC.err) {
+					t.Errorf("expected an error %v but got %v", tC.err, err)
 				}
 			} else {
 				if !reflect.DeepEqual(ep, tC.endpoint) {
