@@ -11,6 +11,8 @@ linters-settings:
       - opinionated
       - performance
       - style
+    disabled-checks:
+      - whyNoLint
   goimports:
     local-prefixes: github.com/MOZGIII/external-dns-endpoint-server
   golint:
