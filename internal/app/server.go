@@ -5,7 +5,6 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"os"
 	"sync"
 
 	"github.com/MOZGIII/external-dns-endpoint-server/internal/edns"
@@ -23,6 +22,8 @@ func Run() error {
 	httpAddr := readEnv("HTTP_ADDR")
 	ednsAddr := readEnv("EDNS_ADDR")
 
+	dnsRecordSettings := readDNSRecordSettings()
+
 	ednslc := net.ListenConfig{}
 
 	ednsListener, err := ednslc.Listen(ctx, "tcp", ednsAddr)
@@ -39,6 +40,8 @@ func Run() error {
 
 	endpointsChan := make(chan []*endpoint.Endpoint)
 	logicState := logic.Logic{
+		DNSRecordSettings: dnsRecordSettings,
+
 		IPChan:       ipChan,
 		EnpointsChan: endpointsChan,
 	}
@@ -83,13 +86,4 @@ func acceptLoop(listener net.Listener) <-chan net.Conn {
 	}()
 
 	return ch
-}
-
-func readEnv(key string) string {
-	val := os.Getenv(key)
-	if val == "" {
-		log.Fatalf("%s env var unset", key)
-	}
-
-	return val
 }

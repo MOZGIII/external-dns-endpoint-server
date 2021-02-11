@@ -10,7 +10,7 @@ import (
 )
 
 type Logic struct {
-	DNSRecordSettings DNSRecordSettings
+	DNSRecordSettings *DNSRecordSettings
 
 	IPChan       <-chan net.IP
 	EnpointsChan chan<- []*endpoint.Endpoint
