@@ -12,6 +12,8 @@ import (
 )
 
 func makeTestLabels(t *testing.T) endpoint.Labels {
+	t.Helper()
+
 	testLabels, err := endpoint.NewLabelsFromString("heritage=external-dns,external-dns/foo=bar")
 	if err != nil {
 		t.Fatalf("invalid test labels: %v", err)
