@@ -1,11 +1,13 @@
 package logic
 
 import (
-	"fmt"
+	"errors"
 	"net"
 
 	"sigs.k8s.io/external-dns/endpoint"
 )
+
+var ErrInvalidIP = errors.New("invalid IP")
 
 type DNSRecordSettings struct {
 	DNSName          string
@@ -17,13 +19,14 @@ type DNSRecordSettings struct {
 
 func (s *DNSRecordSettings) MapIPToEndpoint(ip net.IP) (*endpoint.Endpoint, error) {
 	var recordType string
+
 	switch {
 	case len(ip.To4()) == net.IPv4len:
 		recordType = "A"
 	case len(ip) == net.IPv6len:
 		recordType = "AAAA"
 	default:
-		return nil, fmt.Errorf("invalid IP")
+		return nil, ErrInvalidIP
 	}
 
 	ep := endpoint.Endpoint{
@@ -35,5 +38,6 @@ func (s *DNSRecordSettings) MapIPToEndpoint(ip net.IP) (*endpoint.Endpoint, erro
 		Labels:           s.Labels,
 		ProviderSpecific: s.ProviderSpecific,
 	}
+
 	return &ep, nil
 }

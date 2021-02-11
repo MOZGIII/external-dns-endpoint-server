@@ -3,6 +3,7 @@ package edns
 import (
 	"context"
 	"encoding/gob"
+	"io"
 	"log"
 	"net"
 	"sync"
@@ -36,14 +37,15 @@ func (h *Handler) Run(ctx context.Context, wg *sync.WaitGroup) {
 		case newState := <-h.StateCh:
 			state = newState
 		case conn := <-h.ConnCh:
-			go serveTcp(ctx, conn, state)
+			go serveTCP(ctx, conn, state)
 		}
 	}
 }
 
-func serveTcp(ctx context.Context, conn net.Conn, state []*endpoint.Endpoint) {
-	defer conn.Close()
-	enc := gob.NewEncoder(conn)
+func serveTCP(_ context.Context, w io.WriteCloser, state []*endpoint.Endpoint) {
+	defer w.Close()
+
+	enc := gob.NewEncoder(w)
 	if err := enc.Encode(state); err != nil {
 		log.Printf("error while writing the state to the socket: %v", err)
 	}

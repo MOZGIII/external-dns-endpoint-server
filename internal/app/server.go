@@ -24,20 +24,21 @@ func Run() error {
 	ednsAddr := readEnv("EDNS_ADDR")
 
 	ednslc := net.ListenConfig{}
+
 	ednsListener, err := ednslc.Listen(ctx, "tcp", ednsAddr)
 	if err != nil {
-		return fmt.Errorf("unable to listen for connector: %v", err)
+		return fmt.Errorf("unable to listen for connector: %w", err)
 	}
 	defer ednsListener.Close()
 	connCh := acceptLoop(ednsListener)
 
-	ipChan := make(chan net.IP, 32)
+	ipChan := make(chan net.IP)
 	updateHandler := &update.Handler{
 		IPChan: ipChan,
 	}
 
-	endpointsChan := make(chan []*endpoint.Endpoint, 32)
-	logic := logic.Logic{
+	endpointsChan := make(chan []*endpoint.Endpoint)
+	logicState := logic.Logic{
 		IPChan:       ipChan,
 		EnpointsChan: endpointsChan,
 	}
@@ -56,18 +57,20 @@ func Run() error {
 	go ednsHandler.Run(ctx, &wg)
 	wg.Add(1)
 
-	go logic.Run(ctx, &wg)
+	go logicState.Run(ctx, &wg)
 	wg.Add(1)
 
 	go httprun.Run(ctx, &wg, &httpSrv)
 	wg.Add(1)
 
 	wg.Wait()
+
 	return nil
 }
 
 func acceptLoop(listener net.Listener) <-chan net.Conn {
-	ch := make(chan net.Conn, 32)
+	ch := make(chan net.Conn)
+
 	go func() {
 		for {
 			conn, err := listener.Accept()
@@ -78,6 +81,7 @@ func acceptLoop(listener net.Listener) <-chan net.Conn {
 			ch <- conn
 		}
 	}()
+
 	return ch
 }
 
@@ -86,5 +90,6 @@ func readEnv(key string) string {
 	if val == "" {
 		log.Fatalf("%s env var unset", key)
 	}
+
 	return val
 }

@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/MOZGIII/external-dns-endpoint-server/internal/logic"
+
 	"sigs.k8s.io/external-dns/endpoint"
 )
 
@@ -14,6 +15,7 @@ func makeTestLabels(t *testing.T) endpoint.Labels {
 	if err != nil {
 		t.Fatalf("invalid test labels: %v", err)
 	}
+
 	return testLabels
 }
 
@@ -84,18 +86,20 @@ func TestMapIPToEndpoint(t *testing.T) {
 			err: false,
 		},
 	}
+
 	for _, tC := range testCases {
+		tC := tC
 		t.Run(tC.desc, func(t *testing.T) {
-			endpoint, err := tC.settings.MapIPToEndpoint(tC.ip)
+			ep, err := tC.settings.MapIPToEndpoint(tC.ip)
 			if tC.err {
 				if err == nil {
 					t.Error("expected an error but didn't get one")
 				}
 			} else {
-				if !reflect.DeepEqual(endpoint, tC.endpoint) {
+				if !reflect.DeepEqual(ep, tC.endpoint) {
 					t.Errorf(
 						"endpoint returned do not match the expectation:\ngot %v, expected %v",
-						endpoint, tC.endpoint,
+						ep, tC.endpoint,
 					)
 				}
 			}

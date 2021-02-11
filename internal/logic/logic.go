@@ -18,6 +18,7 @@ type Logic struct {
 
 func (l *Logic) Run(ctx context.Context, wg *sync.WaitGroup) {
 	defer wg.Done()
+
 	for {
 		select {
 		case ip := <-l.IPChan:
@@ -34,5 +35,6 @@ func (l *Logic) mapIPToEndpoints(ip net.IP) []*endpoint.Endpoint {
 		log.Printf("unable to map the IP address to an endpoint: %v", err)
 		return []*endpoint.Endpoint{}
 	}
+
 	return []*endpoint.Endpoint{ep}
 }
