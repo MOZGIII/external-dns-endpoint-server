@@ -1,7 +1,13 @@
 package main
 
-import "github.com/MOZGIII/external-dns-endpoint-server/internal/app"
+import (
+	"log"
+
+	"github.com/MOZGIII/external-dns-endpoint-server/internal/app"
+)
 
 func main() {
-	app.Run()
+	if err := app.Run(); err != nil {
+		log.Fatalf("error: %v", err)
+	}
 }
