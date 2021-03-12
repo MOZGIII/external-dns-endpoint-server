@@ -1,4 +1,4 @@
-FROM golang:1.15.8 as builder
+FROM golang:1.16.2 as builder
 WORKDIR /app
 COPY . .
 RUN CGO_ENABLED=0 go build -a -ldflags '-s -extldflags "-static"' -mod=vendor -o build .
